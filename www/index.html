@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1200, initial-scale=0.85, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes, viewport-fit=cover">
+<title>تسيير الاختبارات الفصلية</title>
+<style>
+:root{
+  --ink:#14286B; --ink2:#0D1B47; --paper:#EDF0F6; --card:#fff; --line:#CBD3E3; --line2:#E4E9F2;
+  --text:#1B2233; --muted:#5B6579;
+  --ok:#177A55; --okbg:#DFF2E8; --warn:#8A5A00; --warnbg:#FBEFD0; --bad:#A8271F; --badbg:#FBE1DD;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--text);
+  font:15px/1.7 "Segoe UI","Noto Sans Arabic","Noto Kufi Arabic",Tahoma,"Geeza Pro",Arial,sans-serif}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* الشريط العلوي */
+.top{background:var(--ink2);color:#fff;padding:14px 24px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.top h1{margin:0;font-size:20px;font-weight:700}
+#topSub{font-size:14px;opacity:.75}
+#nav{display:flex;gap:2px;background:var(--ink);padding:0 16px;overflow-x:auto}
+#nav button{background:none;border:0;border-bottom:3px solid transparent;color:#C9D3F5;padding:12px 16px;cursor:pointer;white-space:nowrap}
+#nav button:hover{color:#fff}
+#nav button.on{color:#fff;font-weight:700;border-bottom-color:#fff}
+#nav button:focus-visible{outline-color:#fff;outline-offset:-4px}
+
+main{max-width:1200px;margin:22px auto 60px;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:18px}
+.card h2{margin:0 0 4px;font-size:18px}
+.card h1{margin:0 0 4px;font-size:22px}
+.lead{margin:0 0 18px;color:var(--muted)}
+.view[hidden]{display:none}
+
+/* النماذج */
+.home-grid{display:grid;grid-template-columns:1fr 250px;gap:26px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;align-content:start}
+.f{display:flex;flex-direction:column;gap:5px}
+.f.wide{grid-column:1/-1}
+.f>span{font-weight:600;font-size:14px}
+.f input[type=text],.f input[type=number],.f input[type=date],.f select,.inp{
+  height:42px;border:1px solid var(--line);border-radius:6px;padding:0 12px;background:#fff;width:100%}
+.f.invalid input,.f.invalid .seg{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad)}
+.f.invalid>span::after{content:" (مطلوب)";color:var(--bad);font-weight:400}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border:1px solid transparent;border-radius:8px}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.seg b{display:block;text-align:center;padding:11px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:600}
+.seg input:checked+b{background:var(--ink);border-color:var(--ink);color:#fff}
+.seg input:focus-visible+b{outline:2px solid var(--ink);outline-offset:2px}
+
+.logo-box{display:flex;flex-direction:column;gap:10px}
+.logo-box>span{font-weight:600;font-size:14px}
+#logoPrev{height:200px;border:2px dashed var(--line);border-radius:8px;display:grid;place-items:center;background:#F8F9FC;color:var(--muted);overflow:hidden;text-align:center;padding:8px}
+#logoPrev img{max-width:100%;max-height:100%;object-fit:contain}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:600}
+.btn:hover{background:#F1F4FA}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.primary:hover{background:var(--ink2)}
+.btn.danger{color:var(--bad);border-color:#E7B9B4}
+.btn.danger:hover{background:var(--badbg)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:space-between}
+
+/* الاستيراد */
+#drop{border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;background:#F8F9FC}
+#drop.over{border-color:var(--ink);background:#EEF2FF}
+#drop p{margin:0 0 12px}
+#impStatus{margin-top:12px;min-height:24px}
+#impStatus.err{color:var(--bad)} #impStatus.good{color:var(--ok)}
+.hint{color:var(--muted);font-size:13px;margin:10px 0 0}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.card-head h2{margin:0}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:right;background:#F4F6FB;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);font-size:14px}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl td.n{color:var(--muted);width:38px}
+.tbl .acts{white-space:nowrap;text-align:left;width:1%}
+.tbl .acts button{border:1px solid var(--line);background:#fff;border-radius:5px;width:28px;height:28px;cursor:pointer;line-height:1}
+.tbl .acts button:hover{background:#F1F4FA}
+.tbl .acts button.x:hover{background:var(--badbg);color:var(--bad)}
+.tbl .empty,.empty{color:var(--muted);text-align:center;padding:22px}
+.scroll{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.addrow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:12px}
+.addrow input{height:38px;border:1px solid var(--line);border-radius:6px;padding:0 10px;min-width:0}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 16px;cursor:pointer;font-weight:600}
+.tab em{font-style:normal;background:#E4E9F2;border-radius:999px;padding:0 8px;margin-inline-start:8px;font-size:13px}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab.on em{background:rgba(255,255,255,.22)}
+
+/* جدول الحراسة */
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:6px 14px;background:#fff;min-width:110px}
+.stat small{display:block;color:var(--muted);font-size:12.5px;line-height:1.4}
+.stat b{font-size:20px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input{height:38px;border:1px solid var(--line);border-radius:6px;padding:0 12px;min-width:220px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-inline-start:auto}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-inline-end:5px}
+.gridwrap{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+.grid{border-collapse:separate;border-spacing:0;min-width:100%}
+.grid th,.grid td{border-bottom:1px solid var(--line2);border-inline-start:1px solid var(--line2);padding:0 8px;background:#fff;height:40px}
+.grid thead th{position:sticky;background:#F4F6FB;z-index:3;text-align:center;font-weight:600;font-size:14px}
+.grid thead tr:first-child th{top:0;height:54px}
+.grid thead tr:nth-child(2) th{top:54px;height:32px;font-size:13px}
+.grid .sticky{position:sticky;z-index:2}
+.grid thead .sticky{z-index:5}
+.grid .s1{right:0;width:38px;min-width:38px;text-align:center;color:var(--muted)}
+.grid .s2{right:38px;width:180px;min-width:180px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.grid .s3{right:218px;width:104px;min-width:104px;border-inline-end:2px solid var(--line);white-space:nowrap}
+.grid td.subj{white-space:nowrap;color:var(--muted);min-width:130px;padding:0 12px}
+.grid td.slot{text-align:center;min-width:56px}
+.grid td.slot.odd,.grid thead th.odd{background:#F6F8FD}
+.grid input[type=checkbox]{width:22px;height:22px;accent-color:var(--ink);cursor:pointer;vertical-align:middle}
+.grid tbody tr:hover td.slot,.grid tbody tr:hover td.subj{background:#EEF2FF}
+.grid tfoot td{position:sticky;bottom:0;background:#F4F6FB;font-weight:600;text-align:center;z-index:2;border-top:2px solid var(--line)}
+.grid tfoot td.sticky{z-index:5;text-align:right}
+.cn{display:inline-block;min-width:26px;text-align:center;font-weight:700;font-size:16px}
+.bar{display:inline-block;width:40px;height:6px;background:#E3E8F2;border-radius:3px;vertical-align:middle;margin-inline-start:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);width:0}
+.s3.ok{background:var(--okbg)} .s3.ok .bar i{background:var(--ok)}
+.s3.low{background:var(--warnbg)} .s3.low .bar i{background:#C98A00}
+.s3.low .cn::after{content:"▼";font-size:10px;margin-inline-start:3px;color:var(--warn)}
+.s3.high{background:var(--badbg)} .s3.high .bar i{background:var(--bad)}
+.s3.high .cn::after{content:"▲";font-size:10px;margin-inline-start:3px;color:var(--bad)}
+.grid tr.hide{display:none}
+
+/* ورقة التحقق */
+.pill{display:inline-block;border-radius:999px;padding:2px 12px;font-size:13px;background:#E4E9F2;margin:0 0 6px 6px}
+.pill.warn{background:var(--warnbg);color:var(--warn)} .pill.ok{background:var(--okbg);color:var(--ok)}
+#verify{overflow:auto}
+.sheet{background:#fff;color:#000;border:1px solid var(--line);border-radius:6px;padding:22px 26px;margin:0 0 18px;min-width:900px}
+.sh-head{display:grid;grid-template-columns:110px 1fr 250px;gap:14px;align-items:center;margin-bottom:10px}
+.sh-logo{width:100px;height:100px;display:grid;place-items:center}
+.sh-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.sh-titles{text-align:center;line-height:1.7;font-weight:700}
+.sh-titles div:nth-child(n+3){font-weight:600}
+.sh-meta{font-size:13px;line-height:1.8;border:1px solid #000;padding:6px 10px}
+.sheet h3{text-align:center;margin:10px 0 12px;font-size:17px}
+.sheet table{width:100%;border-collapse:collapse;font-size:12.5px}
+.sheet th,.sheet td{border:1px solid #000;padding:3px 6px;text-align:center}
+.sheet td.l{text-align:right}
+.sheet th{background:#EAEAEA}
+.sheet tfoot td{font-weight:700;background:#F3F3F3}
+.sheet .mk{font-weight:700;font-size:14px}
+.sig{display:flex;justify-content:space-between;margin-top:22px;padding:0 40px;font-weight:600}
+.sig div{min-width:200px;text-align:center}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+#printArea{display:none}
+/* بطاقات الحراسة */
+.gc-opts{display:flex;gap:14px;flex-wrap:wrap;align-items:end}
+.gc-opts .f{min-width:170px}
+.gc-chk{display:flex;align-items:center;gap:8px;height:42px;font-weight:600;cursor:pointer}
+.gc-chk input{width:20px;height:20px;accent-color:var(--ink)}
+.gc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:12px}
+.gcard{background:#fff;color:#000;border:1.2px solid #000;padding:12px 14px;font-size:13px;line-height:1.5;break-inside:avoid;page-break-inside:avoid}
+.gcard .gh{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;border-bottom:1px solid #000;padding-bottom:6px}
+.gcard .gl{width:50px;height:50px;display:grid;place-items:center}
+.gcard .gl img{max-width:100%;max-height:100%;object-fit:contain}
+.gcard .gt{text-align:center;font-weight:700;font-size:11.5px;line-height:1.4}
+.gcard .gt .ct{font-size:13px;font-weight:800}
+.gcard .gx{margin-top:6px;padding:3px 6px;border:1px solid #000;border-radius:3px;background:#f2f2f2;font-weight:800;text-align:center}
+.gcard .gi{margin-top:6px;border:1px solid #000;padding:5px 8px;line-height:1.7}
+.gcard .gi b{display:inline-block;min-width:74px}
+.gcard .gd{text-align:center;font-weight:800;margin:6px 0 3px;font-size:12px}
+.gcard table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
+.gcard th,.gcard td{border:1px solid #000;text-align:center;padding:2px 0;height:26px}
+.gcard th{background:#eee;font-weight:800;line-height:1.25}
+.gcard th.pl{width:54px}
+.gcard .gk{font-size:15px;font-weight:900}
+.rmchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.rmchip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;font-weight:600}
+.rmchip input{width:54px;height:30px;border:1px solid var(--line);border-radius:5px;text-align:center}
+.tbl tr.rv td{background:#EEF2FF}
+.tbl tr.ab td{background:#FDECEC;color:#8A1F1F}
+.alert{border:1px solid #E0BB5C;background:var(--warnbg);color:var(--warn);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-weight:600;line-height:1.7}
+.tab.short em{background:var(--warnbg);color:var(--warn)}
+.tab.short.on em{background:rgba(255,255,255,.22);color:#fff}
+.sheet h4{margin:16px 0 6px;font-size:14px;text-align:center}
+.sheet .pg-note{text-align:center;margin:0 0 6px;font-weight:600}
+.tbl td.c{text-align:center;font-weight:700;white-space:nowrap}
+.tbl td.rs.ok{background:var(--okbg)} .tbl td.rs.low{background:var(--warnbg)} .tbl td.rs.high{background:var(--badbg)}
+.sheet td.nm{font-size:10.5px;line-height:1.4;vertical-align:top}
+.gcard .gr{font-size:11px;font-weight:800}
+.gcard .gs{display:flex;justify-content:space-around;margin-top:14px;height:70px;font-weight:700;font-size:12px}
+.gcard .gf{margin-top:5px;text-align:center;font-size:10px;color:#444}
+
+
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink2);color:#fff;padding:10px 20px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:90vw}
+#toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:820px){
+  .home-grid,.cols2{grid-template-columns:1fr}
+  .fields{grid-template-columns:1fr}
+  .seg{grid-template-columns:1fr}
+  .addrow{grid-template-columns:1fr}
+  .grid .sticky{position:static}
+  .grid thead .sticky{position:sticky}
+  .grid .s2{max-width:150px;min-width:150px;width:150px}
+}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block!important}
+  .sheet{border:0;border-radius:0;padding:0;margin:0;min-width:0;page-break-after:always}
+  .sheet:last-child{page-break-after:auto}
+  .sheet table{font-size:11px}
+  thead{display:table-header-group}
+  tr{break-inside:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea.gc-mode .gc-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:66mm;gap:3mm;align-content:start}
+  #printArea.gc-mode .gcard{height:66mm;overflow:hidden;padding:2mm 2.5mm;font-size:9px;line-height:1.4;border:1px solid #000}
+  #printArea.gc-mode .gcard:nth-child(8n):not(:last-child){break-after:page;page-break-after:always}
+  #printArea.gc-mode .gcard .gh{grid-template-columns:13mm 1fr;gap:2mm;padding-bottom:.8mm}
+  #printArea.gc-mode .gcard .gl{width:12mm;height:12mm}
+  #printArea.gc-mode .gcard .gt{font-size:7.8px;line-height:1.25}
+  #printArea.gc-mode .gcard .gt .ct{font-size:9.5px}
+  #printArea.gc-mode .gcard .gx{margin-top:.8mm;padding:.3mm 1.5mm;font-size:9.5px;line-height:1.35}
+  #printArea.gc-mode .gcard .gi{margin-top:.8mm;padding:.4mm 1.5mm;font-size:9px;line-height:1.45}
+  #printArea.gc-mode .gcard .gi b{min-width:19mm}
+  #printArea.gc-mode .gcard .gd{font-size:9px;margin:.9mm 0 .5mm}
+  #printArea.gc-mode .gcard table{font-size:8px}
+  #printArea.gc-mode .gcard th,#printArea.gc-mode .gcard td{height:4.9mm;padding:0}
+  #printArea.gc-mode .gcard th.pl{width:12mm}
+  #printArea.gc-mode .gcard .gk{font-size:12px}
+  #printArea.gc-mode .gcard .gr{font-size:8px}
+  #printArea.gc-mode .gcard .gs{margin-top:2mm;height:19mm;font-size:9px}
+  #printArea.gc-mode .gcard .gf{margin-top:.6mm;font-size:6.5px}
+}
+
+/* وضع سطح المكتب داخل تطبيق Android: نحافظ على تخطيط واسع شبيه بالكمبيوتر */
+body{min-width:1120px;overflow-x:auto;}
+.top{min-width:1120px;}
+#nav{min-width:1120px;}
+main{max-width:1200px;min-width:1080px;}
+@media (max-width:820px){
+  body{min-width:1120px;}
+  main{min-width:1080px;max-width:1200px;padding:0 16px;}
+  .home-grid{grid-template-columns:1fr 250px;}
+  .fields{grid-template-columns:1fr 1fr;}
+}
+</style>
+<style id="pageStyle"></style>
+</head>
+<body>
+
+<header class="top">
+  <h1>تسيير الاختبارات الفصلية</h1>
+  <span id="topSub"></span>
+</header>
+<nav id="nav" aria-label="المراحل">
+  <button data-v="home">البيانات الرئيسية</button>
+  <button data-v="a">١. قائمة أساتذة المؤسسة</button>
+  <button data-v="b">٢. فترات الحراسة</button>
+  <button data-v="c">٣. التحقق والطباعة</button>
+  <button data-v="r">٤. توزيع الحراس على القاعات</button>
+  <button data-v="d">٥. بطاقات الحراسة</button>
+</nav>
+
+
+
+<main>
+<section id="v-home" class="view">
+  <div class="card">
+    <h1>البيانات الرئيسية</h1><p class="lead">أدخل بيانات المؤسسة وفترة الاختبارات قبل الانتقال إلى بقية المراحل.</p>
+    <div class="home-grid">
+      <div class="fields">
+        <label class="f" data-f="name"><span>اسم المؤسسة</span><input data-c="name" id="schoolName" type="text" placeholder="مثال: متوسطة الشهيد دوخ مصطفى"></label>
+        <label class="f" data-f="head"><span>اسم مدير المؤسسة</span><input data-c="head" type="text" placeholder="الاسم واللقب"></label>
+        <div class="f wide" data-f="exam"><span>الفصل الدراسي</span><div class="seg">
+          <label><input name="exam" type="radio" value="الفصل الأول"><b>الفصل الأول</b></label>
+          <label><input name="exam" type="radio" value="الفصل الثاني"><b>الفصل الثاني</b></label>
+          <label><input name="exam" type="radio" value="الفصل الثالث"><b>الفصل الثالث</b></label>
+        </div></div>
+        <label class="f" data-f="days"><span>عدد أيام الاختبارات</span><input data-c="days" type="number" min="1" max="10" placeholder="مثال: 5"></label>
+        <label class="f" data-f="date"><span>تاريخ أول يوم</span><input data-c="date" type="date"></label>
+        <label class="f"><span>السنة الدراسية</span><input data-c="year" type="text" placeholder="2026/2027"></label>
+        <div class="f"><span>عدد القاعات</span><input id="rmCount" type="number" min="1" max="60" placeholder="مثال: 8"></div>
+        <div class="f"><span>عدد الحراس المطلوب في كل قاعة</span><input id="rmDef" type="number" min="1" max="20" placeholder="مثال: 2"></div>
+        <div class="f wide"><span>توزيع عدد الحراس حسب القاعات</span><div id="rmWrap" hidden><div id="rmNeeds" class="row"></div></div><p class="hint">يمكن تحديد عدد مختلف لكل قاعة بعد إدخال عدد القاعات.</p></div>
+      </div>
+      <div class="logo-box"><span>شعار المؤسسة</span><div id="logoPrev">لا يوجد شعار</div><input id="logoFile" type="file" accept="image/*"><button id="logoDel" class="btn danger" type="button">حذف الشعار</button></div>
+    </div>
+    <div class="actions"><div class="row"><button id="toA" class="btn primary" type="button">حفظ والانتقال إلى قائمة الأساتذة</button><button id="resetAll" class="btn danger" type="button">مسح كل البيانات</button></div></div>
+  </div>
+</section>
+<section id="v-a" class="view" hidden>
+ <div class="card"><div class="card-head"><div><h2>قائمة أساتذة المؤسسة</h2><p class="lead">هذه القائمة مخصصة لأساتذة المؤسسة فقط.</p></div><div class="row"><button class="btn primary" type="button" onclick="document.getElementById('xlsxFile').click()">استيراد Excel</button><input id="xlsxFile" type="file" accept=".xlsx" hidden></div></div>
+ <div id="drop"><p><b>استيراد قائمة الأساتذة من Excel</b></p><p class="hint">يمكن أن يحتوي الملف على: الاسم واللقب، والمادة أو التخصص.</p></div><div id="impStatus"></div><div class="row" style="margin:14px 0"><input id="xName" class="inp" style="max-width:300px" placeholder="اسم ولقب الأستاذ"><input id="xSubj" class="inp" style="max-width:220px" placeholder="المادة / التخصص"><button id="addExtra" class="btn" type="button">إضافة أستاذ</button><select id="sortMode" class="inp" style="max-width:180px"><option value="name">ترتيب حسب الاسم</option><option value="subject">ترتيب حسب المادة</option></select></div>
+ <div id="fileName" class="hint"></div><div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>الاسم واللقب</th><th>المادة</th><th>إجراء</th></tr></thead><tbody id="teaBody"></tbody></table></div></div>
+</section>
+<section id="v-b" class="view" hidden><div class="card"><h2>فترات الحراسة</h2><p class="lead">حدد الفترات التي يكون فيها كل أستاذ متاحًا للحراسة.</p><div id="bBody"></div></div></section>
+<section id="v-c" class="view" hidden><div class="card"><div class="card-head"><div><h2>التحقق والطباعة</h2><p class="lead">راجع جدول الحراسة قبل التوزيع على القاعات.</p></div><button id="printBtn" class="btn primary" type="button">طباعة جدول الحراسة</button></div><div id="vInfo"></div><div id="verify"></div></div></section>
+<section id="v-r" class="view" hidden><div class="card"><div class="card-head"><div><h2>توزيع الحراس على القاعات</h2><p id="rmInfo" class="lead"></p></div><div class="row"><button id="rmAuto" class="btn" type="button">توزيع الفترة تلقائيا</button><button id="rmAutoAll" class="btn primary" type="button">توزيع كل الفترات</button><button id="rmClear" class="btn danger" type="button">مسح توزيع الفترة</button></div></div><div id="tabsR" class="row"></div><div id="rBody"></div><div class="row" style="margin-top:15px"><button id="rmPrint" class="btn" type="button">طباعة الفترة</button><button id="rmPrintAll" class="btn primary" type="button">طباعة كل الفترات</button><button id="rmPrintAbs" class="btn" type="button">طباعة الغائبين</button></div></div></section>
+<section id="v-d" class="view" hidden><div class="card"><div class="card-head"><div><h2>بطاقات الحراسة</h2><p class="lead">إعداد بطاقات الأساتذة الحراس.</p></div><button id="gcPrint" class="btn primary" type="button">طباعة البطاقات</button></div><div class="row"><label>المهمة <input id="gcTask" class="inp" value="حارس"></label><label>الفترة / ملاحظة <input id="gcSess" class="inp" placeholder="اختياري"></label><label><input id="gcSkip" type="checkbox" checked> استبعاد من لا يملك فترات</label></div><div id="gcInfo" style="margin:12px 0"></div><div id="gcBody"></div></div></section>
+</main>
+<div id="printArea"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s??'').replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ئ/g,'ي').replace(/ؤ/g,'و').replace(/\s+/g,' ').trim();
+const KEY='school_term_exam_v1';
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3400)}
+function fresh(){return{center:{name:'',head:'',exam:'',days:'',date:'',year:'',logo:'',daysTouched:false},teachers:[],sortMode:'name',fileName:'',view:'home',cardOpts:{task:'حارس',session:'',skip:true},rooms:{count:'',def:'',need:[]}}}
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return j&&j.center?Object.assign(fresh(),j):null}catch(e){return null}}
+let S=load()||fresh(),saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},250)}
+function fillHome(){ $$('[data-c]').forEach(el=>el.value=S.center[el.dataset.c]??'');$$('input[name=exam]').forEach(r=>r.checked=r.value===S.center.exam);renderLogo();updateTop();fillRooms() }
+function updateTop(){const c=S.center;$('#topSub').textContent=[c.name,c.exam,c.year].filter(Boolean).join(' · ')}
+function renderLogo(){const p=$('#logoPrev');p.innerHTML=S.center.logo?`<img src="${S.center.logo}" alt="شعار المؤسسة">`:'لا يوجد شعار';$('#logoDel').hidden=!S.center.logo}
+$$('[data-c]').forEach(el=>el.addEventListener('input',()=>{S.center[el.dataset.c]=el.value;if(el.dataset.c==='days')S.center.daysTouched=true;el.closest('.f')?.classList.remove('invalid');updateTop();save()}));
+$$('input[name=exam]').forEach(r=>r.addEventListener('change',()=>{S.center.exam=r.value;if(!S.center.daysTouched){S.center.days=5; $('[data-c=days]').value=5} $('[data-f=exam]').classList.remove('invalid');updateTop();save()}));
+$('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const img=new Image();img.onload=()=>{const M=320,sc=Math.min(1,M/Math.max(img.width,img.height));const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(img.width*sc));cv.height=Math.max(1,Math.round(img.height*sc));cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);S.center.logo=cv.toDataURL('image/png');save();renderLogo()};img.src=fr.result};fr.readAsDataURL(f);e.target.value=''})
+$('#logoDel').onclick=()=>{S.center.logo='';save();renderLogo()};
+$('#resetAll').onclick=()=>{if(!confirm('سيتم حذف كل بيانات المؤسسة وقائمة الأساتذة وفترات الحراسة. متابعة؟'))return;localStorage.removeItem(KEY);S=fresh();fillHome();go('home')};
+function validate(){const c=S.center,bad=[];if(!c.name.trim())bad.push('name');if(!c.head.trim())bad.push('head');if(!c.exam)bad.push('exam');if(!(+c.days>=1&&+c.days<=10))bad.push('days');if(!c.date)bad.push('date');const rc=parseInt(RM().count,10),rd=parseInt(RM().def,10);if(!(rc>=1&&rc<=60))bad.push('rooms');if(!(rd>=1&&rd<=20))bad.push('rdef');$$('#v-home .f').forEach(f=>f.classList.toggle('invalid',bad.includes(f.dataset.f)));return !bad.length}
+function go(v){if(v!=='home'&&!validate()){v='home';toast('أكمل اسم المؤسسة، المدير، الفصل، عدد الأيام، التاريخ، القاعات والحراس أولا')}if(['b','c','d','r'].includes(v)&&!S.teachers.length){toast('أضف قائمة أساتذة المؤسسة أولا');v='a'}S.view=v;save();$$('.view').forEach(x=>x.hidden=x.id!=='v-'+v);$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='a')renderA();if(v==='b')renderB();if(v==='c')renderC();if(v==='d')renderD();if(v==='r')renderR();window.scrollTo(0,0)}
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)});$('#toA').onclick=()=>go('a');document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+async function unzip(buf){const dv=new DataView(buf),u8=new Uint8Array(buf);let eocd=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--)if(dv.getUint32(i,true)===0x06054b50){eocd=i;break}if(eocd<0)throw new Error('الملف ليس بصيغة xlsx صحيحة.');const total=dv.getUint16(eocd+10,true);let p=dv.getUint32(eocd+16,true);const dec=new TextDecoder(),files={};for(let n=0;n<total;n++){if(dv.getUint32(p,true)!==0x02014b50)break;const method=dv.getUint16(p+10,true),csize=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),off=dv.getUint32(p+42,true);files[dec.decode(u8.subarray(p+46,p+46+nl))]={method,csize,off};p+=46+nl+el+cl}return files}
+async function readEntry(buf,f){const dv=new DataView(buf),u8=new Uint8Array(buf),start=f.off+30+dv.getUint16(f.off+26,true)+dv.getUint16(f.off+28,true),data=u8.subarray(start,start+f.csize);if(f.method===0)return data;if(f.method!==8)throw new Error('طريقة ضغط غير مدعومة.');const stream=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return new Uint8Array(await new Response(stream).arrayBuffer())}
+const colIdx=ref=>{const m=/^([A-Z]+)/i.exec(ref||'');if(!m)return -1;let n=0;for(const ch of m[1].toUpperCase())n=n*26+ch.charCodeAt(0)-64;return n-1};
+async function readXlsx(file){const buf=await file.arrayBuffer(),files=await unzip(buf),get=async name=>{const f=files[name];return f?new TextDecoder('utf-8').decode(await readEntry(buf,f)):null},xml=s=>new DOMParser().parseFromString(s,'application/xml'),wbXml=await get('xl/workbook.xml');if(!wbXml)throw new Error('الملف ليس مصنف Excel صحيحا.');const wb=xml(wbXml),rels=xml(await get('xl/_rels/workbook.xml.rels')||'<r/>'),relMap={};for(const r of rels.getElementsByTagNameNS('*','Relationship'))relMap[r.getAttribute('Id')]=r.getAttribute('Target');const sst=[],ssXml=await get('xl/sharedStrings.xml');if(ssXml)for(const si of xml(ssXml).getElementsByTagNameNS('*','si')){let s='';for(const t of si.getElementsByTagNameNS('*','t'))if(t.parentNode.localName!=='rPh')s+=t.textContent;sst.push(s)}const out=[];for(const sh of wb.getElementsByTagNameNS('*','sheet')){const rid=sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id')||sh.getAttribute('r:id');let t=relMap[rid];if(!t)continue;t=t.startsWith('/')?t.slice(1):'xl/'+t;const sx=await get(t);if(!sx)continue;const rows=[];for(const row of xml(sx).getElementsByTagNameNS('*','row')){const arr=[];for(const c of row.getElementsByTagNameNS('*','c')){let ci=colIdx(c.getAttribute('r'));if(ci<0)ci=arr.length;const ty=c.getAttribute('t'),v=c.getElementsByTagNameNS('*','v')[0];let val='';if(ty==='s'&&v)val=sst[+v.textContent]??'';else if(ty==='inlineStr')val=[...c.getElementsByTagNameNS('*','t')].map(x=>x.textContent).join('');else if(v)val=v.textContent;arr[ci]=String(val).replace(/\s+/g,' ').trim()}for(let i=0;i<arr.length;i++)if(arr[i]===undefined)arr[i]='';rows.push(arr)}out.push({name:sh.getAttribute('name'),rows:rows.filter(r=>r.some(Boolean))})}return out}
+function mapTeacherCols(hdr){const m={};hdr.forEach((h,i)=>{const n=norm(h);if(n.includes('اسم')&&n.includes('لقب'))m.full=i;else if(n.includes('لقب'))m.last=i;else if(n.includes('اسم'))m.first=i;else if(/ماد|تخصص|تدريس/.test(n))m.subject=i});if(m.full==null&&m.first==null&&m.last==null)m.full=0;return m}
+function parseTeachers(rows){let hi=-1;for(let i=0;i<Math.min(rows.length,8);i++)if(rows[i].some(c=>/اسم|لقب|ماد|تخصص|تدريس/.test(norm(c)))){hi=i;break}let m,data;if(hi>=0){m=mapTeacherCols(rows[hi]);data=rows.slice(hi+1)}else{data=rows;m={full:0,subject:1}}const g=(r,k)=>m[k]==null?'':r[m[k]]||'';return data.map(r=>({id:uid(),name:(m.full!=null?g(r,'full'):[g(r,'first'),g(r,'last')].filter(Boolean).join(' ')).trim(),subject:g(r,'subject'),slots:[],rooms:[],abs:[]})).filter(x=>x.name)}
+async function importFile(file){const st=$('#impStatus');try{if(!/\.xlsx$/i.test(file.name))throw new Error('اختر ملف Excel بصيغة xlsx.');if(typeof DecompressionStream==='undefined')throw new Error('المتصفح لا يدعم قراءة الملف. استعمل Chrome أو Edge أو Firefox حديثا.');if(S.teachers.length&&!confirm('سيستبدل الاستيراد قائمة الأساتذة الحالية وفترات الحراسة. متابعة؟'))return;st.textContent='جارٍ قراءة الملف...';const sheets=await readXlsx(file);if(!sheets.length)throw new Error('لا توجد أوراق في الملف.');S.teachers=parseTeachers(sheets[0].rows);S.fileName=file.name;sortTeachers();ensureSlots();save();renderA();st.textContent=`تم استيراد ${S.teachers.length} أستاذا من المؤسسة.`;st.className='good'}catch(err){st.textContent=err.message||'تعذر قراءة الملف.';st.className='err'}}
+$('#xlsxFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)importFile(f);e.target.value=''});const drop=$('#drop');['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)importFile(f)});
+function sortTeachers(){const c=(a,b)=>String(a).localeCompare(String(b),'ar');S.teachers.sort(S.sortMode==='subject'?(x,y)=>c(x.subject,y.subject)||c(x.name,y.name):c.bind(null))}
+function ensureSlots(){const n=(+S.center.days||0)*2;S.teachers.forEach(t=>{const o=Array.isArray(t.slots)?t.slots:[],r=Array.isArray(t.rooms)?t.rooms:[],a=Array.isArray(t.abs)?t.abs:[];t.slots=Array.from({length:n},(_,i)=>o[i]?1:0);t.rooms=Array.from({length:n},(_,i)=>r[i]||0);t.abs=Array.from({length:n},(_,i)=>a[i]?1:0)})}
+function renderA(){$('#fileName').textContent=S.fileName?`الملف الحالي: ${S.fileName}`:'لم يُستورد أي ملف بعد';$('#teaBody').innerHTML=S.teachers.length?S.teachers.map((t,i)=>`<tr><td class="n">${i+1}</td><td>${esc(t.name)}</td><td>${esc(t.subject)}</td><td class="acts"><button class="x" data-act="tdel" data-id="${t.id}">×</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">لا يوجد أساتذة بعد</td></tr>';$('#sortMode').value=S.sortMode}
+$('#sortMode').onchange=e=>{S.sortMode=e.target.value;sortTeachers();save();renderA()};$('#addExtra').onclick=()=>{const n=$('#xName').value.trim();if(!n){toast('أدخل اسم الأستاذ');return}S.teachers.push({id:uid(),name:n,subject:$('#xSubj').value.trim(),slots:[],rooms:[],abs:[]});$('#xName').value='';$('#xSubj').value='';sortTeachers();ensureSlots();save();renderA();$('#xName').focus()};$('#xName').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addExtra').click()});$('#v-a').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b?.dataset.act==='tdel'){S.teachers=S.teachers.filter(t=>t.id!==b.dataset.id);save();renderA()}});
+function dayInfo(i){const d=S.center.date;if(!d)return{wd:'اليوم '+(i+1),dm:''};const[y,m,dd]=d.split('-').map(Number),dt=new Date(y,m-1,dd+i);let wd;try{wd=dt.toLocaleDateString('ar-DZ-u-nu-latn',{weekday:'long'})}catch(e){wd=dt.toLocaleDateString('ar',{weekday:'long'})}return{wd,dm:String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear()}}
+function renderB(){ensureSlots();const L=S.teachers,D=+S.center.days,box=$('#bBody');if(!L.length){box.innerHTML='<div class="empty">لا يوجد أساتذة في القائمة.</div>';return}let h1='',h2='',ft='';for(let d=0;d<D;d++){const di=dayInfo(d);h1+=`<th colspan="2">${esc(di.wd)}<br><span class="ltr">${di.dm}</span></th>`;h2+='<th>صباحا</th><th>مساء</th>'}for(let s=0;s<D*2;s++)ft+=`<td data-ft="${s}">0</td>`;const rows=L.map((t,i)=>{let cells='';for(let s=0;s<D*2;s++)cells+=`<td class="slot"><input type="checkbox" data-id="${t.id}" data-s="${s}" ${t.slots[s]?'checked':''}></td>`;return`<tr data-id="${t.id}" data-n="${esc(norm(t.name+' '+t.subject))}"><td class="sticky s1">${i+1}</td><td class="sticky s2">${esc(t.name)}</td><td class="sticky s3"><span class="cn">0</span><span class="bar"><i></i></span></td><td class="subj">${esc(t.subject)}</td>${cells}</tr>`}).join('');box.innerHTML=`<div class="stats"><div class="stat"><small>عدد الأساتذة</small><b>${L.length}</b></div><div class="stat"><small>الفترات الموزعة</small><b id="stTotal">0</b></div><div class="stat"><small>المتوسط</small><b id="stMean">0</b></div><div class="stat"><small>الأقل</small><b id="stMin">0</b></div><div class="stat"><small>الأكثر</small><b id="stMax">0</b></div></div><div class="toolbar"><input id="q" type="search" placeholder="بحث باسم الأستاذ أو المادة"><button class="btn sm danger" id="clearB">مسح كل الفترات</button></div><div class="gridwrap"><table class="grid" id="gridB"><thead><tr><th rowspan="2" class="sticky s1">#</th><th rowspan="2" class="sticky s2">الاسم واللقب</th><th rowspan="2" class="sticky s3">عدد الفترات</th><th rowspan="2">المادة</th>${h1}</tr><tr>${h2}</tr></thead><tbody>${rows}</tbody><tfoot><tr><td></td><td>عدد الحراس في الفترة</td><td></td><td></td>${ft}</tr></tfoot></table></div>`;refreshB()}
+function refreshB(){const L=S.teachers,N=(+S.center.days||0)*2;if(!L.length||!$('#gridB'))return;const counts=L.map(t=>t.slots.reduce((a,b)=>a+b,0)),total=counts.reduce((a,b)=>a+b,0),mean=total/L.length;L.forEach((t,i)=>{const tr=$(`#gridB tr[data-id="${t.id}"]`);if(!tr)return;const c=counts[i];tr.querySelector('.cn').textContent=c;tr.querySelector('.bar i').style.width=(N?c/N*100:0)+'%'});for(let s=0;s<N;s++)$('#gridB [data-ft="'+s+'"]')?.replaceChildren(document.createTextNode(L.reduce((a,t)=>a+t.slots[s],0)));$('#stTotal').textContent=total;$('#stMean').textContent=(Math.round(mean*10)/10).toString().replace('.',',');$('#stMin').textContent=Math.min(...counts);$('#stMax').textContent=Math.max(...counts)}
+$('#bBody').addEventListener('change',e=>{const el=e.target;if(!el.matches('#gridB input[type=checkbox]'))return;const t=S.teachers.find(x=>x.id===el.dataset.id);if(!t)return;t.slots[+el.dataset.s]=el.checked?1:0;if(!el.checked)t.rooms[+el.dataset.s]=0;save();refreshB()});$('#bBody').addEventListener('input',e=>{if(e.target.id==='q'){const q=norm(e.target.value);$$('#gridB tbody tr').forEach(tr=>tr.classList.toggle('hide',!!q&&!tr.dataset.n.includes(q)))}});$('#bBody').addEventListener('click',e=>{if(e.target.id==='clearB'&&confirm('مسح جميع فترات الحراسة؟')){S.teachers.forEach(t=>{t.slots=t.slots.map(()=>0);t.rooms=[]});save();renderB()}});
+function sheetHTML(){const c=S.center,D=+c.days,L=S.teachers,year=c.year||'',h1=[],h2=[];for(let d=0;d<D;d++){const di=dayInfo(d);h1.push(`<th colspan="2">${esc(di.wd)}<br><span class="ltr">${di.dm}</span></th>`);h2.push('<th>صباحا</th><th>مساء</th>')}let grand=0;const body=L.map((t,i)=>{let cells='',n=0;for(let s=0;s<D*2;s++){const on=t.slots[s]?1:0;n+=on;cells+=`<td class="mk">${on?'✓':''}</td>`}grand+=n;return`<tr><td>${i+1}</td><td class="l">${esc(t.name)}</td><td class="l">${esc(t.subject)}</td>${cells}<td class="mk">${n}</td></tr>`}).join('');let ft='';for(let s=0;s<D*2;s++)ft+=`<td>${L.reduce((a,t)=>a+(t.slots[s]?1:0),0)}</td>`;return`<div class="sheet"><div class="sh-head"><div class="sh-logo">${c.logo?`<img src="${c.logo}" alt="">`:''}</div><div class="sh-titles"><div>الجمهورية الجزائرية الديمقراطية الشعبية</div><div>وزارة التربية الوطنية</div><div>مؤسسة ${esc(c.name)}</div><div>الاختبارات الفصلية</div></div><div class="sh-meta">${c.name?`المؤسسة: <b>${esc(c.name)}</b>`:''}<br>${c.head?`المدير: <b>${esc(c.head)}</b>`:''}<br>${year?`السنة الدراسية: <b>${esc(year)}</b>`:''}</div></div><h3>جدول فترات حراسة الأساتذة<br>${esc(c.exam)}</h3><table><thead><tr><th rowspan="2">الرقم</th><th rowspan="2">الاسم واللقب</th><th rowspan="2">المادة</th>${h1.join('')}<th rowspan="2">المجموع</th></tr><tr>${h2.join('')}</tr></thead><tbody>${body}</tbody><tfoot><tr><td colspan="3">مجموع الحراس في الفترة</td>${ft}<td>${grand}</td></tr></tfoot></table><div class="sig"><div>مدير المؤسسة<br>${esc(c.head)}</div><div>التوقيع والختم</div></div></div>`}
+function androidPrint(jobName, orientation='portrait'){
+  const area=$('#printArea');
+  if(!area || !area.innerHTML.trim()) { toast('لا توجد بيانات للطباعة'); return; }
+  if(window.cordova && cordova.plugins && cordova.plugins.nativeprint){
+    cordova.plugins.nativeprint.print(jobName||'تسيير الاختبارات الفصلية',orientation||'portrait',function(){
+      $('#pageStyle').textContent=''; $('#printArea').className='';
+    },function(err){
+      console.error('Print error',err); toast('تعذر فتح نافذة الطباعة');
+    });
+  }else{
+    window.print();
+  }
+}
+
+function renderC(){ensureSlots();const zero=S.teachers.filter(t=>!t.slots.some(Boolean)).length;$('#vInfo').innerHTML=`<span class="pill ${zero?'warn':'ok'}">عدد الأساتذة: ${S.teachers.length} — ${zero?`بلا فترات: ${zero}`:'كل الأساتذة موزعون'}</span>`;$('#verify').innerHTML=S.teachers.length?sheetHTML():'<div class="card empty">لا توجد بيانات.</div>'}$('#printBtn').onclick=()=>{if(!S.teachers.length)return toast('لا توجد بيانات للطباعة');$('#printArea').className='';$('#pageStyle').textContent='';$('#printArea').innerHTML=sheetHTML();androidPrint('جدول الحراسة','portrait')};
+function cardList(){const o=S.cardOpts;return{out:S.teachers.filter(t=>!o.skip||t.slots.some(Boolean)),skipped:S.teachers.filter(t=>o.skip&&!t.slots.some(Boolean)).length}}
+function cardHTML(t,i){const c=S.center,D=+c.days;let h='';for(let d=0;d<D;d++){const di=dayInfo(d);h+=`<th>${esc(di.wd)}<br><span class="ltr">${di.dm.slice(0,5)}</span></th>`}const row=(p,o)=>`<tr><th class="pl">${p}</th>${Array.from({length:D},(_,d)=>`<td>${t.slots[d*2+o]?'<span class="gk">✔</span>':''}</td>`).join('')}</tr>`;return`<article class="gcard"><div class="gh"><div class="gl">${c.logo?`<img src="${c.logo}" alt="">`:''}</div><div class="gt"><div>وزارة التربية الوطنية</div><div>مؤسسة ${esc(c.name)}</div><div class="ct">الاختبارات الفصلية</div></div></div><div class="gx">${esc(c.exam)}${c.year?' — '+esc(c.year):''}</div><div class="gi"><div><b>الاسم واللقب:</b> ${esc(t.name)}</div><div><b>المهمة:</b> ${esc(S.cardOpts.task||'حارس')}</div>${t.subject?`<div><b>المادة:</b> ${esc(t.subject)}</div>`:''}</div><div class="gd">جدول الحراسة</div><table><thead><tr><th class="pl">الفترة / اليوم</th>${h}</tr></thead><tbody>${row('صباحا',0)}${row('مساء',1)}</tbody></table><div class="gs"><span>الإمضاء</span><span>الختم</span></div><div class="gf">بطاقة حراسة — ${i+1}</div></article>`}
+function renderD(){const o=S.cardOpts;$('#gcTask').value=o.task;$('#gcSess').value=o.session;$('#gcSkip').checked=o.skip;const {out,skipped}=cardList();$('#gcInfo').innerHTML=`<span class="pill ok">عدد البطاقات: ${out.length}</span>${skipped?`<span class="pill warn">استُبعد ${skipped} بلا فترات</span>`:''}<span class="pill">تُطبع 8 بطاقات في كل صفحة A4</span>`;$('#gcBody').innerHTML=out.length?`<div class="gc-grid">${out.map(cardHTML).join('')}</div>`:'<div class="card empty">لا توجد بطاقات.</div>'}$('#gcSkip').onchange=e=>{S.cardOpts.skip=e.target.checked;save();renderD()};$('#gcTask').oninput=e=>{S.cardOpts.task=e.target.value;save()};$('#gcSess').oninput=e=>{S.cardOpts.session=e.target.value;save()};$('#gcPrint').onclick=()=>{const{out}=cardList();if(!out.length)return toast('لا توجد بطاقات للطباعة');$('#printArea').className='gc-mode';$('#printArea').innerHTML=`<div class="gc-grid">${out.map(cardHTML).join('')}</div>`;$('#pageStyle').textContent='@page{size:A4 portrait;margin:7mm}';androidPrint('بطاقات الحراسة','portrait')};window.addEventListener('afterprint',()=>{$('#pageStyle').textContent='';$('#printArea').className=''})
+const RM=()=>{const r=S.rooms=S.rooms||{};if(!Array.isArray(r.need))r.need=[];return r},roomsN=()=>Math.max(1,Math.min(60,parseInt(RM().count,10)||1)),needOf=r=>{const v=RM().need[r];if(v!=null&&v!=='')return +v;const d=parseInt(RM().def,10);return d>=0?d:0};function fillRooms(){$('#rmCount').value=RM().count??'';$('#rmDef').value=RM().def??'';renderRoomChips()}function renderRoomChips(){const n=parseInt(RM().count,10),ok=n>=1&&n<=60;$('#rmWrap').hidden=!ok;$('#rmNeeds').innerHTML=ok?Array.from({length:n},(_,r)=>`<label class="rmchip">قاعة ${r+1}<input type="number" min="0" max="20" data-r="${r}" value="${needOf(r)}"></label>`).join(''):''}$('#rmCount').oninput=e=>{RM().count=e.target.value;renderRoomChips();save()};$('#rmDef').oninput=e=>{RM().def=e.target.value;renderRoomChips();save()};$('#rmNeeds').oninput=e=>{if(e.target.dataset.r!=null){const v=parseInt(e.target.value,10);RM().need[+e.target.dataset.r]=isNaN(v)?null:Math.max(0,Math.min(20,v));save()}}
+let perR=0;function ensureRooms(){ensureSlots();const n=(+S.center.days||0)*2,N=roomsN();S.teachers.forEach(t=>{const r=t.rooms||[],a=t.abs||[];t.abs=Array.from({length:n},(_,i)=>t.slots[i]&&a[i]?1:0);t.rooms=Array.from({length:n},(_,i)=>t.slots[i]&&!t.abs[i]&&r[i]>=1&&r[i]<=N?r[i]:0)})}function poolOf(s){return S.teachers.filter(t=>t.slots[s]).map(t=>({t}))}function doneOf(s){return poolOf(s).some(x=>x.t.rooms[s]>0)}function autoPeriod(s){const N=roomsN(),pool=poolOf(s).map(x=>x.t).filter(t=>!t.abs[s]);poolOf(s).forEach(x=>x.t.rooms[s]=0);const q=pool.slice(),left=Array.from({length:N},(_,r)=>needOf(r));let moved=true;while(q.length&&moved){moved=false;for(let r=0;r<N&&q.length;r++)if(left[r]>0){q.shift().rooms[s]=r+1;left[r]--;moved=true}}}
+function renderTabsR(){const n=(+S.center.days||0)*2;$('#tabsR').innerHTML=Array.from({length:n},(_,s)=>{const di=dayInfo(s>>1);return`<button class="tab ${s===perR?'on':''}" data-s="${s}">${di.wd} — ${s%2?'مساء':'صباحا'}<em>${poolOf(s).length}</em></button>`}).join('')}function renderR(){ensureRooms();$('#rmInfo').textContent=`${roomsN()} قاعة — ${S.center.days} أيام`;renderTabsR();renderRBody()}function renderRBody(){const s=perR,N=roomsN(),pool=poolOf(s),rows=pool.map(({t},i)=>`<tr class="${!t.rooms[s]?'rv':''}${t.abs[s]?' ab':''}"><td class="n">${i+1}</td><td>${esc(t.name)}</td><td>${esc(t.subject)}</td><td><input type="checkbox" data-abs="${t.id}" ${t.abs[s]?'checked':''}></td><td><select data-id="${t.id}" ${t.abs[s]?'disabled':''}><option value="0">احتياط</option>${Array.from({length:N},(_,r)=>`<option value="${r+1}" ${t.rooms[s]===r+1?'selected':''}>قاعة ${r+1}</option>`).join('')}</select></td></tr>`).join('');$('#rBody').innerHTML=`<div id="rAlert"></div><div id="rStats" style="margin-bottom:6px"></div><div class="cols2"><div class="card"><h2>توزيع الحراس</h2><div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>الاسم</th><th>المادة</th><th>غائب</th><th>القاعة</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا يوجد أساتذة في هذه الفترة</td></tr>'}</tbody></table></div></div><div><div class="card"><h2>جدول القاعات</h2><div class="scroll"><table class="tbl"><thead><tr><th>القاعة</th><th>الحراس / المطلوب</th><th>الأسماء</th></tr></thead><tbody id="rSum"></tbody></table></div></div><div class="card"><h2>الاحتياط</h2><div class="scroll"><table class="tbl"><tbody id="rRes"></tbody></table></div></div><div class="card"><h2>الغائبون</h2><div class="scroll"><table class="tbl"><tbody id="rAbs"></tbody></table></div></div></div></div>`;renderRSum()}
+function renderRSum(){const s=perR,N=roomsN(),by=Array.from({length:N},()=>[]),res=[],ab=[];poolOf(s).forEach(({t})=>{if(t.abs[s])ab.push(t);else(t.rooms[s]?by[t.rooms[s]-1]:res).push(t)});$('#rSum').innerHTML=by.map((a,r)=>`<tr><td>قاعة ${r+1}</td><td class="c">${a.length} / ${needOf(r)}</td><td>${a.map(t=>esc(t.name)).join('، ')||'—'}</td></tr>`).join('');$('#rRes').innerHTML=res.length?res.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.subject)}</td></tr>`).join(''):'<tr><td class="empty">لا يوجد احتياط</td></tr>';$('#rAbs').innerHTML=ab.length?ab.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.subject)}</td></tr>`).join(''):'<tr><td class="empty">لا يوجد غائبون</td></tr>';const total=poolOf(s).length,present=total-ab.length,need=Array.from({length:N},(_,r)=>needOf(r)).reduce((a,b)=>a+b,0);$('#rStats').innerHTML=`<span class="pill">الحراس: ${total}</span><span class="pill">المطلوب: ${need}</span><span class="pill ${res.length?'warn':'ok'}">الاحتياط: ${res.length}</span><span class="pill ${ab.length?'warn':'ok'}">الغائبون: ${ab.length}</span>`;$('#rAlert').innerHTML=present<need?`<div class="alert">⚠ عدد الحراس الحاضرين (${present}) أقل من المطلوب (${need}).</div>`:''}
+$('#tabsR').onclick=e=>{const b=e.target.closest('.tab');if(b){perR=+b.dataset.s;renderTabsR();renderRBody()}};$('#rBody').addEventListener('change',e=>{const el=e.target,tr=el.closest('tr');if(el.matches('input[data-abs]')){const t=S.teachers.find(x=>x.id===el.dataset.abs);t.abs[perR]=el.checked?1:0;if(el.checked)t.rooms[perR]=0;save();renderRBody()}else if(el.matches('select[data-id]')){const t=S.teachers.find(x=>x.id===el.dataset.id);t.rooms[perR]=+el.value;save();renderRSum()}});$('#rmAuto').onclick=()=>{autoPeriod(perR);save();renderRBody();toast('تم توزيع الفترة تلقائيا')};$('#rmAutoAll').onclick=()=>{for(let i=0;i<(+S.center.days||0)*2;i++)autoPeriod(i);save();renderRBody();toast('تم توزيع كل الفترات تلقائيا')};$('#rmClear').onclick=()=>{poolOf(perR).forEach(({t})=>t.rooms[perR]=0);save();renderRBody()};
+function periodSheetHTML(s){const c=S.center,N=roomsN(),di=dayInfo(s>>1),by=Array.from({length:N},()=>[]),res=[];poolOf(s).forEach(({t})=>{if(t.abs[s])return;t.rooms[s]?(by[t.rooms[s]-1].push(t)):res.push(t)});const m=Math.max(1,...by.map(a=>a.length)),gh=Array.from({length:m},(_,i)=>`<th>الحارس ${i+1}</th>`).join(''),grows=by.map((a,r)=>`<tr><td><b>قاعة ${r+1}</b></td>${Array.from({length:m},(_,i)=>`<td class="l">${a[i]?esc(a[i].name):''}</td>`).join('')}<td>${a.length}</td></tr>`).join('');return`<div class="sheet"><div class="sh-head"><div class="sh-logo">${c.logo?`<img src="${c.logo}" alt="">`:''}</div><div class="sh-titles"><div>وزارة التربية الوطنية</div><div>مؤسسة ${esc(c.name)}</div><div>الاختبارات الفصلية</div></div><div class="sh-meta">${esc(c.exam)}<br>${esc(di.wd)} ${esc(di.dm)} — ${s%2?'مساء':'صباحا'}</div></div><h3>توزيع الأساتذة الحراس على القاعات</h3><table><thead><tr><th>القاعة</th>${gh}<th>العدد</th></tr></thead><tbody>${grows}</tbody></table><div class="sig"><div>مدير المؤسسة<br>${esc(c.head)}</div><div>التوقيع والختم</div></div></div><div class="sheet"><div class="sh-head"><div class="sh-logo"></div><div class="sh-titles"><div>مؤسسة ${esc(c.name)}</div><div>الاختبارات الفصلية</div></div><div class="sh-meta">${esc(c.exam)}<br>${esc(di.wd)} ${esc(di.dm)} — ${s%2?'مساء':'صباحا'}</div></div><h3>جدول الأساتذة الاحتياطيين</h3><table><thead><tr><th>#</th><th>الاسم واللقب</th><th>المادة</th></tr></thead><tbody>${res.length?res.map((t,i)=>`<tr><td>${i+1}</td><td>${esc(t.name)}</td><td>${esc(t.subject)}</td></tr>`).join(''):'<tr><td colspan="3">لا يوجد أساتذة احتياط</td></tr>'}</tbody></table></div>`}
+function printPeriods(list){ensureRooms();if(!list.some(doneOf)){toast('لم يُوزَّع أي أستاذ على القاعات بعد');return}$('#printArea').className='';$('#pageStyle').textContent='@page{size:A4 portrait;margin:10mm}';$('#printArea').innerHTML=list.map(periodSheetHTML).join('');androidPrint('توزيع الحراس على القاعات','portrait')};$('#rmPrint').onclick=()=>printPeriods([perR]);$('#rmPrintAll').onclick=()=>printPeriods(Array.from({length:(+S.center.days||0)*2},(_,i)=>i).filter(doneOf));$('#rmPrintAbs').onclick=()=>{ensureRooms();const rows=[];for(let s=0;s<(+S.center.days||0)*2;s++)poolOf(s).forEach(({t})=>{if(t.abs[s])rows.push({s,t})});if(!rows.length)return toast('لا يوجد أساتذة غائبون');const c=S.center;$('#printArea').innerHTML=`<div class="sheet"><div class="sh-head"><div class="sh-logo">${c.logo?`<img src="${c.logo}" alt="">`:''}</div><div class="sh-titles"><div>وزارة التربية الوطنية</div><div>مؤسسة ${esc(c.name)}</div><div>الاختبارات الفصلية</div></div><div class="sh-meta">${esc(c.exam)}</div></div><h3>قائمة الأساتذة الغائبين</h3><table><thead><tr><th>#</th><th>الاسم واللقب</th><th>المادة</th><th>الفترة</th></tr></thead><tbody>${rows.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.t.name)}</td><td>${esc(x.t.subject)}</td><td>${esc(dayInfo(x.s>>1).wd)} — ${x.s%2?'مساء':'صباحا'}</td></tr>`).join('')}</tbody></table><div class="sig"><div>مدير المؤسسة<br>${esc(c.head)}</div><div>التوقيع والختم</div></div></div>`;$('#pageStyle').textContent='@page{size:A4 portrait;margin:10mm}';androidPrint('قائمة الأساتذة الغائبين','portrait')};
+fillHome();go(['home','a','b','c','r','d'].includes(S.view)?S.view:'home');
+</script>
+</body>
+</html>
