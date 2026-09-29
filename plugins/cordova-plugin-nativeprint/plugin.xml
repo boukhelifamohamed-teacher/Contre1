@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin id="cordova-plugin-nativeprint" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0">
+    <name>NativePrint</name>
+    <description>Native Android printing support for Cordova WebView.</description>
+    <license>MIT</license>
+    <js-module src="www/nativeprint.js" name="NativePrint">
+        <clobbers target="cordova.plugins.nativeprint" />
+    </js-module>
+    <platform name="android">
+        <source-file src="src/android/NativePrint.java" target-dir="src/dz/boukhelifa/nativeprint" />
+    </platform>
+</plugin>
