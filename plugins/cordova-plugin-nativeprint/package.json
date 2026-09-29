@@ -1,0 +1,11 @@
+{
+  "name": "cordova-plugin-nativeprint",
+  "version": "1.0.0",
+  "description": "Native Android Print Framework support for Cordova WebView",
+  "cordova": {
+    "id": "cordova-plugin-nativeprint",
+    "platforms": ["android"]
+  },
+  "keywords": ["cordova", "android", "print", "printing"],
+  "license": "MIT"
+}
