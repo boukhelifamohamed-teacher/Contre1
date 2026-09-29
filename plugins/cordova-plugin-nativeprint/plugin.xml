@@ -7,6 +7,11 @@
         <clobbers target="cordova.plugins.nativeprint" />
     </js-module>
     <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="NativePrint">
+                <param name="android-package" value="dz.boukhelifa.nativeprint.NativePrint" />
+            </feature>
+        </config-file>
         <source-file src="src/android/NativePrint.java" target-dir="src/dz/boukhelifa/nativeprint" />
     </platform>
 </plugin>
